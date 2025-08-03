@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nepali EMI Calculator</title>
+    <style>
+        :root {
+            --primary-color: #00b894;
+            --secondary-color: #55efc4;
+            --text-color: #2d3436;
+            --light-text: #f5f6fa;
+            --glass-bg: rgba(0, 184, 148, 0.2);
+            --glass-border: rgba(0, 184, 148, 0.3);
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            --error-glow: 0 0 10px rgba(255, 0, 0, 0.5);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #00b894 0%, #0984e3 100%);
+            color: var(--text-color);
+            padding: 20px;
+        }
+        
+        .ad-space {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .ad-left, .ad-right {
+            width: 120px;
+            height: 600px;
+            margin: 0 10px;
+        }
+        
+        .ad-bottom {
+            width: 100%;
+            height: 90px;
+            margin-top: 20px;
+        }
+        
+        .calculator-container {
+            width: 100%;
+            max-width: 500px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--shadow);
+            padding: 30px;
+            transition: all 0.3s ease;
+        }
+        
+        .calculator-container:hover {
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: var(--light-text);
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--light-text);
+            font-weight: 500;
+        }
+        
+        input[type="text"], input[type="number"], input[type="date"], select {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 10px;
+            border: none;
+            background: rgba(255, 255, 255, 0.8);
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        input[type="text"]:focus, input[type="number"]:focus, input[type="date"]:focus, select:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 0 0 2px var(--secondary-color);
+        }
+        
+        input.error {
+            box-shadow: var(--error-glow);
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 5px rgba(255, 0, 0, 0.5); }
+            50% { box-shadow: 0 0 15px rgba(255, 0, 0, 0.8); }
+            100% { box-shadow: 0 0 5px rgba(255, 0, 0, 0.5); }
+        }
+        
+        .value-display {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+            color: var(--light-text);
+            font-size: 14px;
+        }
+        
+        .tenure-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .tenure-item {
+            flex: 1;
+        }
+        
+        button {
+            width: 100%;
+            padding: 15px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            box-shadow: 0 4px 15px rgba(0, 184, 148, 0.3);
+        }
+        
+        button:hover {
+            background: var(--secondary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 184, 148, 0.4);
+        }
+        
+        /* Popup Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid var(--glass-border);
+            padding: 30px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            color: var(--light-text);
+            position: relative;
+        }
+        
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--light-text);
+        }
+        
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .result-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        
+        .result-label {
+            font-weight: 500;
+        }
+        
+        .result-value {
+            font-weight: 600;
+            font-size: 18px;
+        }
+        
+        .emi-value {
+            font-size: 28px;
+            color: #fff;
+            text-align: center;
+            margin: 20px 0;
+            font-weight: 700;
+        }
+        
+        .chart-container {
+            margin-top: 20px;
+            height: 10px;
+            display: flex;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .principal-portion {
+            background: var(--primary-color);
+        }
+        
+        .interest-portion {
+            background: var(--secondary-color);
+        }
+        
+        .chart-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+            font-size: 12px;
+            color: var(--light-text);
+        }
+        
+        /* Amortization Table */
+        .amortization-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        
+        .amortization-table th, 
+        .amortization-table td {
+            padding: 10px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .amortization-table th {
+            background-color: rgba(0, 184, 148, 0.3);
+            font-weight: 600;
+        }
+        
+        .amortization-table tr:nth-child(even) {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+        
+        .amortization-table tr:hover {
+            background-color: rgba(0, 184, 148, 0.2);
+        }
+        
+        .show-schedule-btn {
+            margin-top: 20px;
+            width: auto;
+            padding: 10px 20px;
+            background: var(--secondary-color);
+        }
+        
+        .schedule-container {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .ad-left, .ad-right {
+                display: none;
+            }
+            
+            .modal-content {
+                width: 95%;
+                padding: 15px;
+            }
+            
+            .amortization-table {
+                font-size: 12px;
+            }
+            
+            .amortization-table th, 
+            .amortization-table td {
+                padding: 6px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="ad-space ad-left">Advertisement</div>
+    
+    <div class="calculator-container">
+        <h1>Nepali EMI Calculator</h1>
+        
+        <div class="input-group">
+            <label for="loan-amount">Loan Amount (Rs.)</label>
+            <input type="text" id="loan-amount" value="10,00,000" inputmode="numeric">
+            <div class="value-display">
+                <span>Rs.1K</span>
+                <span>Rs.10 Crore</span>
+            </div>
+        </div>
+        
+        <div class="input-group">
+            <label for="interest-rate">Interest Rate (% p.a.)</label>
+            <input type="number" id="interest-rate" min="1" max="30" step="0.01" value="8.5" placeholder="Enter interest rate">
+        </div>
+        
+        <div class="input-group">
+            <label for="loan-tenure">Loan Tenure</label>
+            <div class="tenure-container">
+                <div class="tenure-item">
+                    <input type="number" id="tenure-years" min="0" max="30" value="10" placeholder="Years">
+                </div>
+                <div class="tenure-item">
+                    <input type="number" id="tenure-months" min="0" max="11" value="0" placeholder="Months">
+                </div>
+                <div class="tenure-item">
+                    <input type="number" id="tenure-days" min="0" max="30" value="0" placeholder="Days">
+                </div>
+            </div>
+        </div>
+        
+        <div class="input-group">
+            <label for="start-date">Loan Start Date</label>
+            <input type="date" id="start-date">
+        </div>
+        
+        <div class="input-group">
+            <label for="payment-frequency">Payment Frequency</label>
+            <select id="payment-frequency">
+                <option value="12">Monthly</option>
+                <option value="4">Quarterly</option>
+                <option value="2">Half-Yearly</option>
+                <option value="1">Yearly</option>
+            </select>
+        </div>
+        
+        <button id="calculate-btn">Calculate EMI</button>
+    </div>
+    
+    <div class="ad-space ad-right">Advertisement</div>
+    
+    <div class="ad-space ad-bottom">Advertisement</div>
+    
+    <!-- Results Popup -->
+    <div id="results-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" id="close-modal">&times;</span>
+            <h2 style="text-align: center; margin-bottom: 20px;">EMI Calculation Results</h2>
+            
+             <div style="text-align: center; margin-bottom: 10px; font-size: 18px; color: var(--light-text);">
+            | Monthly Installment |
+             </div>
+            <div class="emi-value" id="emi-value">Rs.0</div>
+            
+            <div class="result-item">
+                <span class="result-label">Principal Amount:</span>
+                <span class="result-value" id="principal-amount">Rs.0</span>
+            </div>
+            
+            <div class="result-item">
+                <span class="result-label">Total Interest:</span>
+                <span class="result-value" id="total-interest">Rs.0</span>
+            </div>
+            
+            <div class="result-item">
+                <span class="result-label">Total Payment:</span>
+                <span class="result-value" id="total-payment">Rs.0</span>
+            </div>
+            
+            <div class="result-item">
+                <span class="result-label">Loan Tenure:</span>
+                <span class="result-value" id="loan-tenure-result">0 years 0 months 0 days</span>
+            </div>
+            
+            <div class="result-item">
+                <span class="result-label">Start Date:</span>
+                <span class="result-value" id="start-date-result">-</span>
+            </div>
+            
+            <div class="result-item">
+                <span class="result-label">End Date:</span>
+                <span class="result-value" id="end-date">-</span>
+            </div>
+            
+            <div class="result-item">
+                <span class="result-label">Payment Frequency:</span>
+                <span class="result-value" id="payment-frequency-result">-</span>
+            </div>
+            
+            <div class="chart-container" id="chart-container">
+                <div class="principal-portion" id="principal-portion" style="width: 50%;"></div>
+                <div class="interest-portion" id="interest-portion" style="width: 50%;"></div>
+            </div>
+            
+            <div class="chart-labels">
+                <span>Principal (Rs.<span id="principal-label">0</span>)</span>
+                <span>Interest (Rs.<span id="interest-label">0</span>)</span>
+            </div>
+            
+            <button id="show-schedule-btn" class="show-schedule-btn">Show Payment Schedule</button>
+            
+            <div id="schedule-container" class="schedule-container" style="display: none;">
+                <table class="amortization-table">
+                    <thead>
+                        <tr>
+                            <th>SN</th>
+                            <th>Payment Date</th>
+                            <th>EMI</th>
+                            <th>Principal</th>
+                            <th>Interest</th>
+                            <th>Remaining</th>
+                        </tr>
+                    </thead>
+                    <tbody id="amortization-body">
+                        <!-- Amortization schedule will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set default date to today
+            const today = new Date();
+            const formattedDate = today.toISOString().split('T')[0];
+            document.getElementById('start-date').value = formattedDate;
+            
+            // Modal elements
+            const modal = document.getElementById('results-modal');
+            const closeBtn = document.getElementById('close-modal');
+            const calculateBtn = document.getElementById('calculate-btn');
+            const showScheduleBtn = document.getElementById('show-schedule-btn');
+            const scheduleContainer = document.getElementById('schedule-container');
+            
+            // PERFECT Nepali number formatting (from right: first comma after 3 digits, then every 2 digits)
+            function formatNepaliNumber(num) {
+                // Remove all non-digit characters
+                num = num.toString().replace(/\D/g, '');
+                if (num === '') return '';
+                
+                // Reverse to process from right
+                let reversed = num.split('').reverse().join('');
+                let formattedReversed = '';
+                
+                // Add commas after 3 digits, then every 2 digits
+                for (let i = 0; i < reversed.length; i++) {
+                    if (i === 3 || (i > 3 && (i - 3) % 2 === 0)) {
+                        formattedReversed += ',';
+                    }
+                    formattedReversed += reversed.charAt(i);
+                }
+                
+                // Reverse back and return
+                return formattedReversed.split('').reverse().join('');
+            }
+            
+            // Format currency display (with Rs. and decimals)
+            function formatNepaliCurrency(amount) {
+                amount = amount.toString().replace(/,/g, '');
+                if (isNaN(amount)) return 'Rs.0';
+                
+                // Split into whole and decimal parts
+                let parts = amount.split('.');
+                let whole = formatNepaliNumber(parts[0]);
+                let decimal = parts.length > 1 ? parts[1].substring(0, 2) : '00';
+                
+                return 'Rs.' + whole + '.' + decimal;
+            }
+            
+            // Format loan amount input in real-time
+            document.getElementById('loan-amount').addEventListener('input', function(e) {
+                let value = e.target.value.replace(/,/g, '');
+                e.target.value = formatNepaliNumber(value);
+            });
+            
+            // Generate amortization schedule
+            function generateAmortizationSchedule(P, r, n, emi, startDate, frequency) {
+                const schedule = [];
+                let balance = P;
+                let paymentDate = new Date(startDate);
+                const monthsPerPeriod = 12 / frequency;
+                
+                for (let i = 1; i <= n; i++) {
+                    // Calculate interest and principal for this period
+                    const interest = balance * (r / frequency);
+                    const principal = emi - interest;
+                    
+                    // Update balance
+                    balance -= principal;
+                    
+                    // If last payment, adjust to ensure balance becomes zero
+                    if (i === n) {
+                        balance = 0;
+                    }
+                    
+                    // Add to schedule
+                    schedule.push({
+                        sn: i,
+                        paymentDate: new Date(paymentDate),
+                        emi: emi,
+                        principal: principal,
+                        interest: interest,
+                        balance: balance > 0 ? balance : 0
+                    });
+                    
+                    // Move to next payment date
+                    paymentDate.setMonth(paymentDate.getMonth() + monthsPerPeriod);
+                }
+                
+                return schedule;
+            }
+            
+            // Update modal with results
+            function updateResults(P, r, years, months, days, frequency, startDate, emi, totalPaymentValue, totalInterestValue) {
+                // Calculate end date
+                const endDate = new Date(startDate);
+                const totalDays = (years * 365) + (months * 30) + days;
+                const n = Math.ceil((totalDays / 365) * frequency);
+                endDate.setMonth(endDate.getMonth() + Math.ceil(totalDays / 30));
+                
+                // Format dates
+                const options = { year: 'numeric', month: 'long', day: 'numeric' };
+                const formattedStartDate = startDate.toLocaleDateString('en-US', options);
+                const formattedEndDate = endDate.toLocaleDateString('en-US', options);
+                
+                // Format tenure
+                let tenureText = '';
+                if (years > 0) tenureText += years + ' year' + (years > 1 ? 's ' : ' ');
+                if (months > 0) tenureText += months + ' month' + (months > 1 ? 's ' : ' ');
+                if (days > 0) tenureText += days + ' day' + (days > 1 ? 's' : '');
+                if (tenureText === '') tenureText = '0 years 0 months 0 days';
+                
+                // Get frequency text
+                const frequencyText = document.getElementById('payment-frequency').options[document.getElementById('payment-frequency').selectedIndex].text;
+                
+                // Update modal content with properly formatted numbers
+                document.getElementById('emi-value').textContent = formatNepaliCurrency(emi.toFixed(2));
+                document.getElementById('principal-amount').textContent = formatNepaliCurrency(P);
+                document.getElementById('total-interest').textContent = formatNepaliCurrency(totalInterestValue.toFixed(2));
+                document.getElementById('total-payment').textContent = formatNepaliCurrency(totalPaymentValue.toFixed(2));
+                document.getElementById('loan-tenure-result').textContent = tenureText;
+                document.getElementById('start-date-result').textContent = formattedStartDate;
+                document.getElementById('end-date').textContent = formattedEndDate;
+                document.getElementById('payment-frequency-result').textContent = frequencyText;
+                
+                // Update chart
+                const principalPercentage = (P / totalPaymentValue) * 100;
+                const interestPercentage = (totalInterestValue / totalPaymentValue) * 100;
+                
+                document.getElementById('principal-portion').style.width = principalPercentage + '%';
+                document.getElementById('interest-portion').style.width = interestPercentage + '%';
+                
+                document.getElementById('principal-label').textContent = formatNepaliCurrency(P).replace('Rs.', '');
+                document.getElementById('interest-label').textContent = formatNepaliCurrency(totalInterestValue).replace('Rs.', '');
+                
+                // Generate and store amortization schedule
+                const amortizationSchedule = generateAmortizationSchedule(P, r, n, emi, startDate, frequency);
+                
+                // Clear previous schedule
+                const amortizationBody = document.getElementById('amortization-body');
+                amortizationBody.innerHTML = '';
+                
+                // Populate schedule table
+                amortizationSchedule.forEach((payment, index) => {
+                    const row = document.createElement('tr');
+                    
+                    row.innerHTML = `
+                        <td>${payment.sn}</td>
+                        <td>${payment.paymentDate.toLocaleDateString('en-US')}</td>
+                        <td>${formatNepaliCurrency(payment.emi.toFixed(2))}</td>
+                        <td>${formatNepaliCurrency(payment.principal.toFixed(2))}</td>
+                        <td>${formatNepaliCurrency(payment.interest.toFixed(2))}</td>
+                        <td>${formatNepaliCurrency(payment.balance.toFixed(2))}</td>
+                    `;
+                    
+                    amortizationBody.appendChild(row);
+                });
+                
+                // Show the modal
+                modal.style.display = 'flex';
+            }
+            
+            // Highlight empty required fields
+            function validateInputs() {
+                const requiredInputs = [
+                    'loan-amount',
+                    'interest-rate',
+                    'tenure-years',
+                    'tenure-months',
+                    'tenure-days',
+                    'start-date'
+                ];
+                
+                let allValid = true;
+                
+                requiredInputs.forEach(id => {
+                    const input = document.getElementById(id);
+                    const value = input.value;
+                    
+                    if (!value || (typeof value === 'string' && value.trim() === '')) {
+                        input.classList.add('error');
+                        allValid = false;
+                    } else {
+                        input.classList.remove('error');
+                    }
+                });
+                
+                // Check if at least one tenure field has value
+                const years = document.getElementById('tenure-years').value;
+                const months = document.getElementById('tenure-months').value;
+                const days = document.getElementById('tenure-days').value;
+                
+                if (!years && !months && !days) {
+                    document.getElementById('tenure-years').classList.add('error');
+                    document.getElementById('tenure-months').classList.add('error');
+                    document.getElementById('tenure-days').classList.add('error');
+                    allValid = false;
+                }
+                
+                return allValid;
+            }
+            
+            // Calculate EMI
+            function calculateEMI() {
+                if (!validateInputs()) {
+                    return;
+                }
+                
+                const P = parseFloat(document.getElementById('loan-amount').value.replace(/,/g, ''));
+                const r = parseFloat(document.getElementById('interest-rate').value) / 100;
+                const years = parseInt(document.getElementById('tenure-years').value) || 0;
+                const months = parseInt(document.getElementById('tenure-months').value) || 0;
+                const days = parseInt(document.getElementById('tenure-days').value) || 0;
+                const frequency = parseInt(document.getElementById('payment-frequency').value);
+                const startDate = new Date(document.getElementById('start-date').value);
+                
+                // Convert tenure to months based on frequency
+                const totalDays = (years * 365) + (months * 30) + days;
+                const n = Math.ceil((totalDays / 365) * frequency);
+                const periodicRate = r / frequency;
+                
+                if (P && r && n) {
+                    const emi = P * periodicRate * Math.pow(1 + periodicRate, n) / (Math.pow(1 + periodicRate, n) - 1);
+                    const totalPaymentValue = emi * n;
+                    const totalInterestValue = totalPaymentValue - P;
+                    
+                    updateResults(P, r, years, months, days, frequency, startDate, emi, totalPaymentValue, totalInterestValue);
+                }
+            }
+            
+            // Event listeners
+            calculateBtn.addEventListener('click', calculateEMI);
+            
+            closeBtn.addEventListener('click', function() {
+                modal.style.display = 'none';
+                scheduleContainer.style.display = 'none';
+            });
+            
+            window.addEventListener('click', function(event) {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                    scheduleContainer.style.display = 'none';
+                }
+            });
+            
+            showScheduleBtn.addEventListener('click', function() {
+                if (scheduleContainer.style.display === 'none' || scheduleContainer.style.display === '') {
+                    scheduleContainer.style.display = 'block';
+                    this.textContent = 'Hide Payment Schedule';
+                } else {
+                    scheduleContainer.style.display = 'none';
+                    this.textContent = 'Show Payment Schedule';
+                }
+            });
+            
+            // Initialize
+            document.getElementById('loan-amount').value = formatNepaliNumber(document.getElementById('loan-amount').value.replace(/,/g, ''));
+        });
+    </script>
+</body>
+</html>
